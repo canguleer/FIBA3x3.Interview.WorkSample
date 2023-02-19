@@ -1,0 +1,40 @@
+﻿@page "/"
+
+<PageTitle>FIBA 3x3 - Interview</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mt-5" GutterBottom="true">FIBA 3x3 - Introduction</MudText>
+<MudText Typo="Typo.body1">
+    The following technologies / frameworks are used by this work sample and should be used when adding your solution.
+    <MudList>
+        <MudListItem Icon="@Icons.Material.Filled.Info">
+            <MudText>Core Framework: <MudLink href="https://dotnet.microsoft.com/en-us/learn/aspnet/blazor-tutorial/intro" Target="_blank">Blazor</MudLink></MudText>
+        </MudListItem>
+        <MudListItem Icon="@Icons.Material.Filled.Info">
+            <MudText>Component Library: <MudLink href="https://mudblazor.com/getting-started/usage#quick-start" Target="_blank">MudBlazor</MudLink> </MudText>
+        </MudListItem>
+    </MudList>
+</MudText>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Tasks for Work Sample 1</MudText>
+<MudText Typo="Typo.body1">
+    Based on the fetched data in WorkSample1.razor you should build a table that:
+    <MudList>
+        <MudListItem Icon="@Icons.Material.Filled.Task" Text="Can be sorted for Event.Name, Event.Start/End, Event.Location"/>
+        <MudListItem Icon="@Icons.Material.Filled.Task" Text="Can be filtered for Event.Name, Event.Address.Country, All/Past/Upcoming events - Filters should be AND joined - use case e.g. Show only Past Events in Switzerland"/>
+        <MudListItem Icon="@Icons.Material.Filled.Task" Text="Design (UI) is not specified and can follow best practices"/>
+        <MudListItem Icon="@Icons.Material.Filled.Task" Text="In case of questions feel free to ask them"/>
+    </MudList>
+</MudText>
+<MudAlert Severity="Severity.Normal">The estimated time frame for this task is <strong>~ 60 minutes</strong></MudAlert>
+
+<MudText Typo="Typo.h4" GutterBottom="true" Class="mt-5">Tasks for Work Sample 2</MudText>
+<MudText Typo="Typo.body1">
+    Based on the fetched data in WorkSample2.razor you should perform an analysis of the data loaded and present the following output:
+    <MudList>
+        <MudListItem Icon="@Icons.Material.Filled.Task" Text="Top 10 Countries based on # of events in 2021 incl. the amount of events"/>
+        <MudListItem Icon="@Icons.Material.Filled.Task" Text="Amount of events per season in France compared to Chile for the seasons 2021-2023"/>
+        <MudListItem Icon="@Icons.Material.Filled.Task" Text="Design (UI) is not specified and can follow best practices"/>
+        <MudListItem Icon="@Icons.Material.Filled.Task" Text="In case of questions feel free to ask them"/>
+    </MudList>
+</MudText>
+<MudAlert Severity="Severity.Normal">The estimated time frame for this task is <strong>~ 60 minutes</strong></MudAlert>

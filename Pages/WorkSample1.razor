@@ -1,0 +1,69 @@
+﻿@page "/worksample1"
+@using FIBA3x3.Interview.WorkSample.Data
+@using FIBA3x3.Interview.WorkSample.Models
+@inject DataService DataService
+
+<PageTitle>FIBA3x3 - Work Sample 1</PageTitle>
+
+<div class=" mt-4">  </div>
+<h1 style="text-align:center;">Work Sample 1</h1>
+<div class=" mt-4">  </div>
+
+@if (_events == null || _countries == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class=" mt-4">  </div> 
+    <MudDataGrid T="EventResultModel" Items="@_data" Filterable="true" FilterMode="@_filterMode" FilterCaseSensitivity="DataGridFilterCaseSensitivity.CaseInsensitive">
+        <Columns>
+            <Column T="EventResultModel" Field="EventName" Title="Event" />
+            <Column T="EventResultModel" Field="Start" Title="Start Date" />
+            <Column T="EventResultModel" Field="End" Title="End Date" />
+            <Column T="EventResultModel" Field="CountryName" Title="Country" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="EventResultModel" />
+        </PagerContent>
+    </MudDataGrid>
+
+    <div class="d-flex flex-wrap mt-4">
+        <MudRadioGroup T="DataGridFilterMode" @bind-SelectedOption="@_filterMode">
+            <MudRadio Dense="true" Option="@DataGridFilterMode.Simple" Color="Color.Primary">Simple</MudRadio>
+            <MudRadio Dense="true" Option="@DataGridFilterMode.ColumnFilterMenu" Color="Color.Tertiary">Column Menu</MudRadio>
+            <MudRadio Dense="true" Option="@DataGridFilterMode.ColumnFilterRow">Column Row</MudRadio>
+        </MudRadioGroup>
+    </div>
+}
+
+@code {
+    IEnumerable<Event>? _events = new List<Event>();
+    IEnumerable<Country>? _countries = new List<Country>();
+    IEnumerable<EventResultModel>? _data = new List<EventResultModel>();
+
+
+    DataGridFilterMode _filterMode = DataGridFilterMode.Simple;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _events = await DataService.GetEventsAsync();
+        _countries = await DataService.GetCountriesAsync();
+
+
+        if (_countries is not null && _events is not null)
+        {
+            _data = (from e in _events
+                     join c in _countries on e.Address.CountryIso2 equals c.CountryIso2 into ps_jointable
+                     from p in ps_jointable.DefaultIfEmpty()
+                     select new EventResultModel()
+                         {
+                             EventName = e.Name,
+                             Start = e.Start,
+                             End = e.End,
+                             CountryName = p?.CountryName ?? e.Address.CountryIso2,
+                             AdditionalInformation = e.AdditionalInformation
+                         }).ToList();
+        }
+    }
+}

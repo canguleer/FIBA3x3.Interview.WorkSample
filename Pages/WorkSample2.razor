@@ -1,0 +1,270 @@
+﻿@page "/worksample2"
+@using FIBA3x3.Interview.WorkSample.Data
+@using FIBA3x3.Interview.WorkSample.Models
+@inject DataService DataService
+@using System.Linq
+
+<PageTitle>FIBA3x3 - Work Sample 2</PageTitle>
+
+<div class=" mt-4">  </div>
+<h1 style="text-align:center;">Top 10 Countries in 2021</h1>
+
+@if (_countries == null || _events == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    // your code can go here
+
+
+    <div class=" mt-4">  </div>
+
+    <MudTable Items="@_eventTop10DataList" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info">
+        <HeaderContent>
+            <MudTh>#</MudTh>
+            <MudTh>Country</MudTh>
+            <MudTh>Event Counts</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="OrderNumber">@context.OrderNumber</MudTd>
+            <MudTd DataLabel="CountryName">@context.CountryName</MudTd>
+            <MudTd DataLabel="Sign">@context.EventCount</MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <div class=" mt-8">  </div>
+    <MudDivider />
+    <div class=" mt-8">  </div>
+    <h1 style="text-align:center;">Countries Events Per Year </h1>
+    <div class=" mt-4">  </div>
+
+
+    @if (showCallAlert)
+    {
+        <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(true))">Start year must be less than End year!</MudAlert>
+    }
+    <div class=" mt-4">  </div>
+    <MudGrid>
+        <MudItem xs="12" sm="8">
+            <MudPaper Class="pa-4">
+                <MudSelect MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionCountryText))" MultiSelection="true" @bind-Value="countryValue" @bind-SelectedValues="countryListOption" T="string" Label="Country" AdornmentIcon="@Icons.Material.Filled.Search" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var state in countryStates)
+                    {
+                        <MudSelectItem T="string" Value="@state">@state</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="2">
+            <MudPaper Class="pa-4">
+                <MudSelect T="int"
+                       Label="Start Year"
+                       SelectedValuesChanged="(values) => OnSelectedValuesChangedForStartDate(values,countryListOption)"
+                       @bind-Value="startValue"
+                       AnchorOrigin="Origin.BottomCenter">
+
+                    @foreach (var yearState in yearStates)
+                    {
+                        <MudSelectItem T="int" Value="@yearState">@yearState</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="2">
+            <MudPaper Class="pa-4">
+                <MudSelect T="int"
+                       Label="End Year"
+                       SelectedValuesChanged="(values) => OnSelectedValuesChangedForEndDate(values,countryListOption)"
+                       @bind-Value="endValue"
+                       AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var yearState in yearStates)
+                    {
+                        <MudSelectItem T="int" Value="@yearState">@yearState</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudPaper>
+        </MudItem>
+
+    </MudGrid>
+
+
+    <MudChart ChartType="ChartType.Bar" ChartSeries="@_series" XAxisLabels="@_yearList.Select(x => x.ToString()).ToArray()" Width="100%" Height="350px">
+        <CustomGraphics>
+            <style>
+                .heavy {
+                    font: bold 30px Helvetica;
+                }
+
+                .Rrrrr {
+                    font: italic 40px Helvetica;
+                    fill: rgb(62,44,221);
+                }
+            </style>
+        </CustomGraphics>
+    </MudChart>
+}
+
+@code {
+    private bool showCallAlert = false;
+
+    private void CloseMe(bool value)
+    {
+        if (value)
+        {
+            showCallAlert = false;
+        }
+    }
+
+    private void ShowAlert()
+    {
+        showCallAlert = true;
+    }
+
+
+
+    private bool _loading = true;
+
+
+    IEnumerable<Event>? _events = new List<Event>();
+    IEnumerable<Country>? _countries = new List<Country>();
+    private IEnumerable<Top10CountriesEventsModel>? _eventTop10DataList = new List<Top10CountriesEventsModel>();
+    private IEnumerable<int>? _yearList = new List<int>();
+    List<ChartSeries>? _series = new List<ChartSeries>();
+
+
+    private string countryValue { get; set; } = "Nothing selected";
+    private int startValue { get; set; } = 2021;
+    private int endValue { get; set; } = 2023;
+
+
+    private IEnumerable<string> countryListOption { get; set; } = new HashSet<string>() { "Chile", "France" };
+
+    private string[] countryStates = { "Chile", "France" };
+    private int[] yearStates = { 2020, 2021, 2022, 2023 };
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _countries = await DataService.GetCountriesAsync();
+        _events = await DataService.GetEventsAsync();
+        countryStates = _countries.Select(x => x.CountryName).ToArray();
+        _eventTop10DataList = GetTopCountriesByYear();
+        GetCountryEventCompareList(countryListOption.ToList(), startValue, endValue);
+    }
+
+
+    private string GetMultiSelectionCountryText(List<string> selectedCountryValues)
+    {
+        GetCountryEventCompareList(selectedCountryValues, startValue, endValue);
+        return $"{selectedCountryValues.Count} state{(selectedCountryValues.Count > 1 ? "s have" : " has")} been selected";
+    }
+
+
+    void OnSelectedValuesChangedForStartDate(IEnumerable<int> values, IEnumerable<string> selectCountryValues)
+    {
+
+        int startYear = values.FirstOrDefault();
+        if (startYear > endValue)
+        {
+            ShowAlert();
+            return;
+        }
+        GetCountryEventCompareList(selectCountryValues.ToList(), startYear, endValue);
+    }
+
+
+    void OnSelectedValuesChangedForEndDate(IEnumerable<int> values, IEnumerable<string> selectCountryValues)
+    {
+        int endYear = values.FirstOrDefault();
+
+        if (startValue > endYear)
+        {
+            ShowAlert();
+            return;
+        }
+        GetCountryEventCompareList(selectCountryValues.ToList(), startValue, endYear);
+    }
+
+
+    private IEnumerable<Top10CountriesEventsModel> GetTopCountriesByYear()
+    {
+        IEnumerable<Top10CountriesEventsModel> countryEventsCompareModels = new List<Top10CountriesEventsModel>();
+        if (_countries is not null && _events is not null)
+        {
+            int i = 0;
+            countryEventsCompareModels = (_events.Where(y => y.Start.Year == 2021 || y.End.Year == 2021)
+            .GroupBy(x => x.Address.CountryIso2)
+            .Select(y => new Top10CountriesEventsModel
+                {
+                    CountryIso2 = y.Key,
+                    EventCount = y.Count()
+                })
+            .OrderByDescending(c => c.EventCount)
+            .Take(10))
+            .Join(_countries, e => e.CountryIso2, c => c.CountryIso2, (e, c) => new { e, c })
+            .Select(x => new Top10CountriesEventsModel
+                {
+                    CountryName = x.c.CountryName,
+                    CountryIso2 = x.e.CountryIso2,
+                    EventCount = x.e.EventCount,
+                    OrderNumber = ++i
+                }).ToList();
+        }
+        return countryEventsCompareModels;
+    }
+
+    private void GetCountryEventCompareList(List<string> selectedCountryValues, int startYear, int endYear)
+    {
+
+        if (startYear > endYear)
+        {
+            ShowAlert();
+            return;
+        }
+        if (_countries is not null && _events is not null)
+        {
+            List<string> countryIsoList = _countries.Where(x => selectedCountryValues.Contains(x.CountryName)).Select(y => y.CountryIso2).ToList();
+            _yearList = Enumerable.Range(startYear, (endYear - startYear) + 1).ToList();
+
+            var eventListGroupByCountryYear = _events.SelectMany(t1 => _yearList.Select(t2 => Tuple.Create(t1, t2)))
+            .Where(d => d.Item1.Start.Year <= d.Item2
+                  && d.Item1.End.Year >= d.Item2
+                  && countryIsoList.Contains(d.Item1.Address.CountryIso2))
+            .GroupBy(g => new { g.Item2, g.Item1.Address.CountryIso2 })
+            .Select(x => new CountryEventsCompareModel
+                {
+                    CountryIso2 = x.Key.CountryIso2,
+                    Year = x.Key.Item2,
+                    EventCount = x.Count()
+                }).ToList();
+
+
+            if (eventListGroupByCountryYear.Count() > 0) _loading = false;
+
+
+            var _dataCountryEventCompareList = eventListGroupByCountryYear.Join(_countries, e => e.CountryIso2, c => c.CountryIso2, (e, c) => new { e, c })
+        .Select(x => new CountryEventsCompareModel
+            {
+                CountryName = x.c.CountryName,
+                CountryIso2 = x.e.CountryIso2,
+                EventCount = x.e.EventCount,
+                Year = x.e.Year
+            }).ToList();
+
+
+
+            _series.RemoveAll(x => x.Name != null);
+            foreach (var eventData in _dataCountryEventCompareList.GroupBy(g => g.CountryName))
+            {
+                double[] eventsbyYear = eventData.OrderBy(x => x.Year).Select(y => Convert.ToDouble(y.EventCount)).ToArray();
+                _series.Add(new ChartSeries() { Name = eventData.Key, Data = eventsbyYear });
+
+            }
+        }
+    }
+
+
+}
